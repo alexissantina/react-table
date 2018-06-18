@@ -3,19 +3,28 @@ import ReactTable from "react-table";
 import logo from './logo.svg';
 import './App.css';
 
-class MovieTableRow extends React.Component {
+const Modal = ({ handleClose, show, children }) => {
+  let showHideClassName = show ? "modal display-block" : "modal display-none";
+
+  return (
+    <div className={showHideClassName}>
+      <section className="modal-main">
+        {children}
+        <button onClick={handleClose}>close</button>
+      </section>
+    </div>
+  );
+};
+
+class MovieTableCell extends React.Component {
   render () {
     let title = this.props.title;
     let director = this.props.director;
+    let modal = this.props.showModal;
     return (
-      <tr>
-        <td>
-          {title}
-        </td>
-        <td>
-          {director}
-        </td>
-      </tr>
+      <td>
+        <a onClick={modal}>{title}</a>
+      </td> 
     );  
   }
 }
@@ -31,15 +40,25 @@ class MovieTable extends React.Component {
     .then(movies => this.setState({ movies: movies }));
   }
 
+  state = { show: false };
+
+  showModal = () => {
+    this.setState({ show: true });
+  };
+
+  hideModal = () => {
+    this.setState({ show: false });
+  };
+
   render() {
-    const rows = [];
+    const cells = [];
     let lastTitle = null;
 
     this.state.movies.forEach((movie) => {
-      rows.push(
-        <MovieTableRow
+      cells.push(
+        <MovieTableCell
+          showModal={this.showModal}
           title={movie.title}
-          director={movie.director}
         />
       );
       lastTitle = movie.title;
@@ -50,10 +69,12 @@ class MovieTable extends React.Component {
         <thead>
           <tr>
             <th>Movie</th>
-            <th>Director</th>
           </tr>
         </thead>
-        <tbody>{rows}</tbody>
+        {cells}
+      <Modal show={this.state.show} handleClose={this.hideModal}>
+        <p>what up</p>
+      </Modal> 
       </table>
     );
   }
@@ -62,7 +83,6 @@ class MovieTable extends React.Component {
 async function getMovies() { 
   const response = await fetch('https://ghibliapi.herokuapp.com/films');
   const json = await response.json();
-  console.log(json);
   return json;
 }
 
